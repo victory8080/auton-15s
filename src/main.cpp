@@ -61,7 +61,7 @@ void initialize() {
   // Autonomous Selector using LLEMU
   ez::as::auton_selector.autons_add({
     
-      {"15s red right", auton_right_15s_red},
+      {"15s Red Right", auton_right_15s_red},
       {"15s red left", auton_left_15s_red},
       {"15s blue right", auton_right_15s_blue},
       {"15s blue left", auton_left_15s_blue},
