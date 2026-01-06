@@ -508,11 +508,12 @@ void auton_right_15s(bool forBlue) {
 
   pros::Task t1(autoIntake);
 
-  tempdist = 0;
-  for (int i=0;i<5;i++){tempdist = FrontDis.get_distance();}
-  for (int i=0;i<5;i++){tempdist += FrontDis.get_distance();}
-  tempdist/=5;
-  tempdist = tempdist / 25.4 - 9.5;
+   tempdist = 0;
+for (int i=0; i<5; i++) {
+    tempdist += FrontDis.get_distance();
+}
+tempdist /= 5;  // average of 5 readings
+tempdist = tempdist / 25.4 - 9.5; // converts millimeters to inches and minus offset
 
   // while(true){
   //   master.print(0,0,"%f", tempdist);
@@ -605,8 +606,114 @@ void auton_right_15s_blue() {
 }
 
 
-void auton_left_15s_red() {
+void auton_left_15s(bool forBlue) {
+  chassis.odom_enable(true);
+  chassis.drive_brake_set(MOTOR_BRAKE_HOLD);
+  chassis.pid_turn_behavior_set(ez::shortest);
+  OpticalSensor.set_led_pwm(100);
+
+  chassis.odom_x_set(15);
+  chassis.odom_y_set(22);
+  chassis.odom_theta_set(90);
+
+  pros::delay(200);
+
+  chassis.pid_odom_set(27.3_in, DRIVE_SPEED);
+  chassis.pid_wait_quick_chain();
+
+  chassis.pid_turn_set(-180, 0.8*TURN_SPEED);
+  chassis.pid_wait_quick_chain();
+
+  loader.set_value(true);
+  pros::delay(400);
+
+  pros::Task t1(autoIntake);
+
+  // first loader
+
+  tempdist = 0;
+for (int i=0; i<5; i++) {
+    tempdist += FrontDis.get_distance();
+}
+tempdist /= 5;  // average of 5 readings
+tempdist = tempdist / 25.4 - 9.5; // converts millimeters to inches and minus offset
+
+ chassis.pid_odom_set(tempdist, DRIVE_SPEED);
+  chassis.pid_wait();
+
+  startTime = pros::millis();
+  while(pros::millis()-startTime < 635){
+    pros::delay(loaderDelay);
+    chassis.pid_odom_set(-0.1_in, DRIVE_SPEED);
+    chassis.pid_wait_quick_chain();
+    chassis.pid_odom_set(0.15_in, DRIVE_SPEED);
+    chassis.pid_wait_quick_chain();
+  }
+
+  outtake_raiser.set_value(true);
+  chassis.pid_odom_set(-29_in, DRIVE_SPEED);
+  loader.set_value(false);
+
+  intakemotorrunning = false;
+
+  intake.move(127);
+  outtake.move(127);
+
+  startTime = pros::millis();
+  while(pros::millis()-startTime < 3000){
+
+     if(abs(intake.get_actual_velocity())<5 && abs(outtake.get_actual_velocity())<5){
+      intake.move(-127);
+      outtake.move(-127);
+      pros::delay(300);
+      intake.move(127);
+      outtake.move(127);
+    }
+    color = OpticalSensor.get_hue();
+    bool isBlue = color > 200 && color < 220;
+    if ((forBlue && !isBlue) || (!forBlue && isBlue)) {
+      intake.move(0);
+      outtake.move(0);
+      break;
+    }
+  }
+
+
+  outtakemotorrunning = false;
+
+  chassis.pid_odom_set(15_in, DRIVE_SPEED);
+  chassis.pid_wait_quick_chain();
+
+  chassis.pid_turn_set(-15, 0.8* TURN_SPEED); // test this later
+  chassis.pid_wait_quick_chain();
+
+  outtake_raiser.set_value(false);
+
+  pros::Task t2(autoIntake);
+  
+  chassis.pid_odom_set(40_in, 0.6* DRIVE_SPEED);
+  chassis.pid_wait_quick_chain();
+
+  intakemotorrunning = false;
+
+   chassis.pid_odom_set(6_in, 0.6*DRIVE_SPEED);
+  chassis.pid_wait_quick_chain();
+
+  intake.move(127);
+  outtake.move(127);
+
+  startTime = pros::millis();
+  while(pros::millis()-startTime < 1000){
+    
+  }
+
+  pros::delay(1000);
 }
 
+
+void auton_left_15s_red()  {
+  auton_left_15s(false);
+}
 void auton_left_15s_blue() {
+auton_right_15s(true);
 }
