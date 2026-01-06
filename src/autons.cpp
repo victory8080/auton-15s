@@ -484,6 +484,10 @@ void measure_offsets() {
 // . . .
 // Make your own autonomous functions here!
 // . . .
+int hue = OpticalSensor.get_hue();
+bool BLUE = hue > 200 && hue < 220;
+bool RED = !BLUE;
+
 void auton_right_15s_red(){
   
   chassis.odom_enable(true);
