@@ -484,11 +484,7 @@ void measure_offsets() {
 // . . .
 // Make your own autonomous functions here!
 // . . .
-int hue = OpticalSensor.get_hue();
-bool BLUE = hue > 200 && hue < 220;
-bool RED = !BLUE;
-
-void auton_right_15s_red(){
+void auton_right_15s(bool forBlue) {
   
   chassis.odom_enable(true);
   chassis.drive_brake_set(MOTOR_BRAKE_HOLD);
@@ -562,8 +558,8 @@ void auton_right_15s_red(){
     }
 
     color = OpticalSensor.get_hue();
-
-    if(color > 200 && color <220){
+    bool isBlue = color > 200 && color < 220;
+    if ((forBlue && !isBlue) || (!forBlue && isBlue)) {
       intake.move(0);
       outtake.move(0);
       break;
@@ -596,19 +592,20 @@ void auton_right_15s_red(){
   while(pros::millis()-startTime < 1000){
     
   }
-    
-
-
 
   pros::delay(1000);
+}
 
+void auton_right_15s_red(){
+  auton_right_15s(false);
+}
+
+void auton_right_15s_blue() {
+  auton_right_15s(true);
 }
 
 
 void auton_left_15s_red() {
-}
-
-void auton_right_15s_blue() {
 }
 
 void auton_left_15s_blue() {
